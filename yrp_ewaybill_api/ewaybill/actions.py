@@ -154,7 +154,7 @@ def generate_e_waybill(doctype, docname, values=None):
 			title=_("e-Waybill Failed"),
 			indicator="red",
 		)
-		return {"ewaybill": None, "status": "Failed"}
+		return {"ewaybill": None, "status": "Failed", "error": error}
 
 	# Success: Part A (no validity yet) vs fully generated (validity returned).
 	ewb_number = str(ewb_number)
@@ -269,7 +269,7 @@ def fetch_e_waybill(doctype, docname, values=None):
 			_("Could not fetch e-Waybills:<br>{0}").format(result.get("error")),
 			title=_("Fetch Failed"), indicator="red",
 		)
-		return {"ewaybill": None}
+		return {"ewaybill": None, "error": result.get("error") or _("Could not fetch e-Waybills")}
 
 	match = _find_matching_ewb(result.get("result"), docname)
 	if not match:
@@ -347,7 +347,7 @@ def cancel_e_waybill(doctype, docname, values=None):
 			title=_("e-Waybill Failed"),
 			indicator="red",
 		)
-		return {"ewaybill": ewb_number, "status": "Failed"}
+		return {"ewaybill": ewb_number, "status": "Failed", "error": error}
 
 	doc.db_set({"ewaybill": "", "e_waybill_status": "Cancelled"})
 
@@ -416,7 +416,7 @@ def update_vehicle_info(doctype, docname, values=None):
 			title=_("e-Waybill Failed"),
 			indicator="red",
 		)
-		return {"ewaybill": ewb_number, "status": "Failed"}
+		return {"ewaybill": ewb_number, "status": "Failed", "error": error}
 
 	# Persist the transport fields the user entered on the doc.
 	transport_fields = {}
