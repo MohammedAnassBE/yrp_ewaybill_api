@@ -1,0 +1,26 @@
+{
+ "actions": [],
+ "autoname": "field:hsn_code",
+ "creation": "2026-07-05 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["hsn_code", "gst_rate", "cess_rate", "gst_treatment"],
+ "fields": [
+  {"fieldname": "hsn_code", "fieldtype": "Data", "label": "HSN/SAC Code", "unique": 1, "reqd": 1, "in_list_view": 1},
+  {"fieldname": "gst_rate", "fieldtype": "Float", "label": "GST Rate (%)", "in_list_view": 1},
+  {"fieldname": "cess_rate", "fieldtype": "Float", "label": "Cess Rate (%)", "default": "0"},
+  {"fieldname": "gst_treatment", "fieldtype": "Select", "label": "GST Treatment", "options": "Taxable\nNil-Rated\nExempted\nZero-Rated\nNon-GST", "default": "Taxable", "in_list_view": 1}
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-07-05 00:00:00",
+ "module": "YRP E-Waybill Integration",
+ "name": "YRP HSN GST Rate",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

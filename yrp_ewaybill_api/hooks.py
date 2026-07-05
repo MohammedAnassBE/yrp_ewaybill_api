@@ -5,6 +5,35 @@ app_description = "E-way bill generation for yrp (Delivery Challan, Stock Entry,
 app_email = "anas@essdee.fit"
 app_license = "mit"
 
+# Includes in <head>
+# ------------------
+app_include_js = ["yrp_ewaybill_api.bundle.js"]
+
+# Document Events
+# ---------------
+doc_events = {
+	"Delivery Challan": {
+		"validate": "yrp_ewaybill_api.gst.source_resolver.update_gst_details",
+		"on_cancel": "yrp_ewaybill_api.ewaybill.lifecycle.auto_cancel_ewaybill",
+	},
+}
+
+# After migrate: (re)create the e-Waybill + GST custom fields on enabled doctypes.
+after_migrate = "yrp_ewaybill_api.ewaybill.field_sync.sync_ewaybill_fields"
+
+# Print-format helpers (QR code, barcode, formatting) for the e-Waybill print.
+jinja = {
+	"methods": [
+		"yrp_ewaybill_api.ewaybill.jinja.get_e_waybill_qr_code",
+		"yrp_ewaybill_api.ewaybill.jinja.get_ewaybill_barcode",
+		"yrp_ewaybill_api.ewaybill.jinja.add_spacing",
+		"yrp_ewaybill_api.ewaybill.jinja.get_state_name",
+		"yrp_ewaybill_api.ewaybill.jinja.ewb_transaction_type",
+		"yrp_ewaybill_api.ewaybill.jinja.ewb_supply_type",
+		"yrp_ewaybill_api.ewaybill.jinja.ewb_sub_supply_type",
+	],
+}
+
 # Apps
 # ------------------
 

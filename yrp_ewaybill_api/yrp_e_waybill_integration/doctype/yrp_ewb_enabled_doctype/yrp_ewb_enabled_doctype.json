@@ -1,0 +1,26 @@
+{
+ "actions": [],
+ "creation": "2026-07-05 00:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "istable": 1,
+ "field_order": ["reference_doctype", "enabled", "supply_direction", "from_gstin_source", "to_gstin_source", "item_hsn_source"],
+ "fields": [
+  {"fieldname": "reference_doctype", "fieldtype": "Link", "label": "DocType", "options": "DocType", "in_list_view": 1, "reqd": 1, "columns": 2},
+  {"fieldname": "enabled", "fieldtype": "Check", "label": "Enabled", "default": "1", "in_list_view": 1, "columns": 1},
+  {"fieldname": "supply_direction", "fieldtype": "Select", "label": "Direction", "options": "Outward\nInward", "default": "Outward", "in_list_view": 1, "columns": 1, "description": "Outward = we dispatch (from = our GSTIN); Inward = we receive"},
+  {"fieldname": "from_gstin_source", "fieldtype": "Data", "label": "From GSTIN Source", "in_list_view": 1, "reqd": 1, "columns": 2, "description": "Dotted path from the document to the dispatch party's GSTIN. e.g. Delivery Challan: from_location.gstin ; GRN: supplier.gstin ; Stock Entry: from_warehouse.supplier.gstin"},
+  {"fieldname": "to_gstin_source", "fieldtype": "Data", "label": "To GSTIN Source", "in_list_view": 1, "columns": 2, "description": "Dotted path to the recipient party's GSTIN. e.g. Delivery Challan: supplier.gstin ; GRN: delivery_location.gstin ; Stock Entry: to_warehouse.supplier.gstin"},
+  {"fieldname": "item_hsn_source", "fieldtype": "Data", "label": "Item HSN Source", "default": "item_variant.item.hsn_code", "columns": 2, "description": "Dotted path from an item row to its HSN code"}
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-07-05 00:00:00",
+ "module": "YRP E-Waybill Integration",
+ "name": "YRP EWB Enabled DocType",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

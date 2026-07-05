@@ -1,0 +1,37 @@
+{
+ "actions": [],
+ "creation": "2026-07-05 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "issingle": 1,
+ "field_order": ["connection_section", "enabled", "sandbox_mode", "company_gstin", "column_break_conn", "api_base_url", "api_secret", "credentials_section", "credentials", "enabled_doctypes_section", "enabled_doctypes_help", "enabled_doctypes", "behaviour_section", "auto_cancel_on_document_cancel"],
+ "fields": [
+  {"fieldname": "connection_section", "fieldtype": "Section Break", "label": "GSP Connection"},
+  {"fieldname": "enabled", "fieldtype": "Check", "label": "Enabled", "default": "1"},
+  {"fieldname": "sandbox_mode", "fieldtype": "Check", "label": "Sandbox Mode", "default": "1", "description": "Use the GSP test endpoint. Turn off for production."},
+  {"fieldname": "company_gstin", "fieldtype": "Data", "label": "Company GSTIN", "description": "The GSTIN e-Way Bills are generated FROM (your company's registered GSTIN). Must have a credential row below. Leave blank to auto-use the single configured credential's GSTIN."},
+  {"fieldname": "column_break_conn", "fieldtype": "Column Break"},
+  {"fieldname": "api_base_url", "fieldtype": "Data", "label": "API Base URL", "default": "https://asp.resilient.tech", "reqd": 1, "description": "GSP/ASP base URL (e.g. Resilient Tech https://asp.resilient.tech)"},
+  {"fieldname": "api_secret", "fieldtype": "Password", "label": "API Secret", "description": "GSP API key sent as the x-api-key header"},
+  {"fieldname": "credentials_section", "fieldtype": "Section Break", "label": "NIC Portal Credentials"},
+  {"fieldname": "credentials", "fieldtype": "Table", "label": "Credentials", "options": "YRP EWB Credential", "description": "One row per company GSTIN, with its e-Way Bill portal login."},
+  {"fieldname": "enabled_doctypes_section", "fieldtype": "Section Break", "label": "Enabled DocTypes"},
+  {"fieldname": "enabled_doctypes_help", "fieldtype": "HTML", "options": "<div class='text-muted small'>List the DocTypes that can generate an e-Way Bill. On save, the transport + e-Waybill fields and the Generate button are created on each. The GSTIN sources tell the engine where to read the from/to GSTIN and item HSN for that DocType.</div>"},
+  {"fieldname": "enabled_doctypes", "fieldtype": "Table", "label": "Enabled DocTypes", "options": "YRP EWB Enabled DocType"},
+  {"fieldname": "behaviour_section", "fieldtype": "Section Break", "label": "Behaviour"},
+  {"fieldname": "auto_cancel_on_document_cancel", "fieldtype": "Check", "label": "Auto-cancel e-Waybill on document cancel", "default": "1"}
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-07-05 00:00:00",
+ "module": "YRP E-Waybill Integration",
+ "name": "YRP E-Waybill Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
