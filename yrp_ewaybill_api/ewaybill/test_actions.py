@@ -109,6 +109,29 @@ class TestGenerateEWaybillAction(unittest.TestCase):
 		# Green toast, no error toast.
 		self.assertEqual(self.msgprint.call_args.kwargs.get("indicator"), "green")
 
+	def test_success_persists_popup_owned_values(self):
+		result = {
+			"success": True,
+			"result": {"ewayBillNo": 331234567890, "validUpto": "2026-07-05 23:59:00"},
+		}
+		values = {
+			"gst_category": "SEZ",
+			"gst_transporter_id": "88AAAAA0000A1Z5",
+			"mode_of_transport": "Road",
+			"vehicle_no": "TN01AB1234",
+			"gst_vehicle_type": "Regular",
+			"distance": 12,
+		}
+
+		with patch.object(api_module.EWaybillAPI, "generate", return_value=result):
+			generate_e_waybill("Delivery Challan", "DC-0001", values)
+
+		self.assertEqual(self.doc.gst_category, "SEZ")
+		self.assertEqual(self.doc.gst_transporter_id, "88AAAAA0000A1Z5")
+		self.assertEqual(self.doc.mode_of_transport, "Road")
+		self.assertEqual(self.doc.vehicle_no, "TN01AB1234")
+		self.assertEqual(self.doc.distance, 12)
+
 	def test_part_a_when_no_validity_returned(self):
 		result = {"success": True, "result": {"ewayBillNo": 331234567891}, "error": None}
 		out = self._run_with_result(result)
@@ -143,6 +166,31 @@ class TestGenerateEWaybillAction(unittest.TestCase):
 
 		# Red toast surfaced.
 		self.assertEqual(self.msgprint.call_args.kwargs.get("indicator"), "red")
+
+	def test_failure_escapes_remote_error_in_message(self):
+		result = {
+			"success": False,
+			"result": None,
+			"error": '<img src=x onerror="alert(1)">',
+		}
+
+		self._run_with_result(result)
+
+		message = self.msgprint.call_args.args[0]
+		self.assertNotIn("<img", message)
+		self.assertIn("&lt;img", message)
+
+	def test_invalid_gst_category_is_rejected(self):
+		with self.assertRaises(frappe.ValidationError):
+			generate_e_waybill(
+				"Delivery Challan",
+				"DC-0001",
+				{"gst_category": "Invalid Category", "gst_transporter_id": "T1"},
+			)
+
+	def test_non_object_dialog_values_are_rejected(self):
+		with self.assertRaises(frappe.ValidationError):
+			generate_e_waybill("Delivery Challan", "DC-0001", "[]")
 
 	def test_success_flag_but_missing_number_is_treated_as_failure(self):
 		# GSP said success but returned no e-Waybill number → Failed, no throw.

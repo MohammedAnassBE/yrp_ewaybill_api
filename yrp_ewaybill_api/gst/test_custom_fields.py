@@ -4,20 +4,10 @@
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from yrp_ewaybill_api.ewaybill.field_sync import create_gst_fields
-from yrp_ewaybill_api.gst.custom_fields import (
-	EWAYBILL_GST_CUSTOM_FIELDS,
-	EWAYBILL_TRANSPORT_FIELDS,
-	MODULE,
-)
+MODULE = "YRP E-Waybill Integration"
 
 
 class TestEwaybillCustomFields(FrappeTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		create_gst_fields()
-
 	def test_delivery_challan_parent_gst_fields(self):
 		meta = frappe.get_meta("Delivery Challan")
 		self.assertTrue(meta.get_field("company_gstin"))
@@ -34,17 +24,37 @@ class TestEwaybillCustomFields(FrappeTestCase):
 		self.assertTrue(meta.get_field("igst_rate"))
 		self.assertTrue(meta.get_field("cess_amount"))
 
-	def test_all_gst_definitions_carry_module(self):
-		for _dt, fields in EWAYBILL_GST_CUSTOM_FIELDS.items():
-			for df in fields:
-				self.assertEqual(df["module"], MODULE)
-				self.assertIn("fieldname", df)
-				self.assertIn("label", df)
-				self.assertIn("fieldtype", df)
-
-	def test_transport_definitions_carry_module(self):
-		fieldnames = [df["fieldname"] for df in EWAYBILL_TRANSPORT_FIELDS]
+	def test_custom_fields_are_fixture_owned(self):
+		fields = frappe.get_all(
+			"Custom Field",
+			filters={"module": MODULE},
+			fields=["dt", "fieldname"],
+		)
+		self.assertTrue(fields)
+		fieldnames = {field.fieldname for field in fields if field.dt == "Delivery Challan"}
 		for expected in ("transporter", "vehicle_no", "ewaybill", "e_waybill_status"):
-			self.assertIn(expected, fieldnames)
-		for df in EWAYBILL_TRANSPORT_FIELDS:
-			self.assertEqual(df["module"], MODULE)
+			if expected != "vehicle_no":  # standard field on Delivery Challan
+				self.assertIn(expected, fieldnames)
+
+	def test_popup_owned_fields_are_read_only(self):
+		for fieldname in (
+			"company_gstin",
+			"party_gstin",
+			"place_of_supply",
+			"gst_category",
+			"transporter",
+			"gst_transporter_id",
+			"mode_of_transport",
+			"gst_vehicle_type",
+			"lr_no",
+			"lr_date",
+			"distance",
+		):
+			self.assertEqual(
+				frappe.db.get_value(
+					"Custom Field",
+					{"dt": "Delivery Challan", "fieldname": fieldname},
+					"read_only",
+				),
+				1,
+			)

@@ -133,6 +133,13 @@ class TestPayload(FrappeTestCase):
 		self.assertNotIn("vehicleType", data)
 		self.assertEqual(data["transporterId"], "88AAAAA0000A1Z5")
 
+	def test_generate_payload_accepts_dialog_transporter_fieldname(self):
+		doc = _make_computed_doc()
+		with patch(SETTINGS, return_value=_mock_settings(sandbox=0)):
+			data = build_generate_payload(doc, {"gst_transporter_id": "88AAAAA0000A1Z5"})
+
+		self.assertEqual(data["transporterId"], "88AAAAA0000A1Z5")
+
 	def test_part_a_without_transporter_raises(self):
 		doc = _make_computed_doc()
 		with self.assertRaises(frappe.ValidationError):

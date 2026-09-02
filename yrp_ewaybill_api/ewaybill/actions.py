@@ -17,15 +17,18 @@ has no e-Waybill number) is logged under a generated placeholder hash.
 
 import frappe
 from frappe import _
-from frappe.utils import now_datetime
+from frappe.utils import escape_html, now_datetime
 
 from yrp_ewaybill_api.ewaybill.api import EWaybillAPI
 from yrp_ewaybill_api.ewaybill.log import create_ewb_log, update_ewb_log
 from yrp_ewaybill_api.ewaybill.payload import (
+	TRANSPORT_MODES,
+	VEHICLE_TYPES,
 	build_cancel_payload,
 	build_generate_payload,
 	build_vehicle_payload,
 )
+from yrp_ewaybill_api.gst.constants import GST_CATEGORIES
 from yrp_ewaybill_api.yrp_e_waybill_integration.doctype.yrp_e_waybill_settings.yrp_e_waybill_settings import (
 	get_ewb_settings,
 )
@@ -54,7 +57,35 @@ def _parse_values(values):
 	"""Normalise the dialog `values` arg (JSON string or dict) into a dict."""
 	if isinstance(values, str):
 		values = frappe.parse_json(values)
-	return values or {}
+	if values is None:
+		return {}
+	if not isinstance(values, dict):
+		frappe.throw(_("Invalid e-Waybill dialog values"))
+	return values
+
+
+def _validate_generate_values(values):
+	"""Reject client-supplied selections that are outside the configured masters."""
+	category = values.get("gst_category")
+	if category and category not in GST_CATEGORIES:
+		frappe.throw(_("Invalid GST Category"))
+
+	mode = values.get("mode_of_transport")
+	if mode and mode not in TRANSPORT_MODES:
+		frappe.throw(_("Invalid Mode of Transport"))
+
+	vehicle_type = values.get("gst_vehicle_type")
+	if vehicle_type and vehicle_type not in VEHICLE_TYPES:
+		frappe.throw(_("Invalid GST Vehicle Type"))
+
+	transporter = values.get("transporter")
+	if transporter:
+		if not isinstance(transporter, str):
+			frappe.throw(_("Invalid Transporter"))
+		supplier = frappe.get_doc("Supplier", transporter)
+		supplier.check_permission("read")
+		if not supplier.get("is_transporter"):
+			frappe.throw(_("The selected Supplier is not marked as a transporter"))
 
 
 def _ensure_gst_resolved(doc):
@@ -73,6 +104,10 @@ def _ensure_gst_resolved(doc):
 		updates["company_gstin"] = doc.get("company_gstin")
 	if doc.get("party_gstin"):
 		updates["party_gstin"] = doc.get("party_gstin")
+	# gst_category is read-only on the form (popup-driven, 2026-07-10) — persist
+	# the resolved/dialog value so the doc shows what the bill was computed with.
+	if doc.get("gst_category"):
+		updates["gst_category"] = doc.get("gst_category")
 	if updates:
 		doc.db_set(updates)
 
@@ -124,8 +159,14 @@ def generate_e_waybill(doctype, docname, values=None):
 			)
 		)
 
-	_ensure_gst_resolved(doc)
 	values = _parse_values(values)
+	_validate_generate_values(values)
+	# The dialog owns gst_category (the form field is read-only): apply the
+	# user's choice BEFORE resolving GST so compute_gst_details' inter-state
+	# split (SEZ/Overseas rules) runs against it.
+	if values.get("gst_category"):
+		doc.gst_category = values.get("gst_category")
+	_ensure_gst_resolved(doc)
 	data = build_generate_payload(doc, values)
 
 	settings = get_ewb_settings()
@@ -150,7 +191,7 @@ def generate_e_waybill(doctype, docname, values=None):
 			error=error,
 		)
 		frappe.msgprint(
-			_("e-Waybill generation failed:<br>{0}").format(error),
+			_("e-Waybill generation failed:<br>{0}").format(escape_html(str(error))),
 			title=_("e-Waybill Failed"),
 			indicator="red",
 		)
@@ -162,6 +203,26 @@ def generate_e_waybill(doctype, docname, values=None):
 	status = "Generated" if valid_upto else "Part A Generated"
 
 	doc.db_set({"ewaybill": ewb_number, "e_waybill_status": status})
+
+	# Persist the transport details the user entered in the dialog. The form
+	# fields are read-only (popup-driven, 2026-07-10), so a successful generate
+	# is the ONLY writer — without this they'd stay blank forever and the next
+	# dialog open couldn't re-prefill. Mirrors update_vehicle_info's pattern.
+	transport_fields = {}
+	for fieldname in (
+		"transporter",
+		"gst_transporter_id",
+		"mode_of_transport",
+		"vehicle_no",
+		"gst_vehicle_type",
+		"lr_no",
+		"lr_date",
+		"distance",
+	):
+		if values.get(fieldname) is not None:
+			transport_fields[fieldname] = values.get(fieldname)
+	if transport_fields:
+		doc.db_set(transport_fields)
 
 	create_ewb_log(
 		e_waybill_number=ewb_number,

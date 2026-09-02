@@ -105,7 +105,10 @@ def build_generate_payload(doc, values):
 		"igstValue": total_igst,
 		"cessValue": total_cess,
 		"totInvValue": tot_inv_value,
-		"transporterId": values.get("transporter_id") or "",
+		# Both dialogs send `gst_transporter_id`; older callers may send
+		# `transporter_id` — accept either (2026-07-10 fix: the mismatch made
+		# Part-A-only generation throw even with the ID filled in).
+		"transporterId": values.get("gst_transporter_id") or values.get("transporter_id") or "",
 		"transDistance": values.get("distance") or 0,
 		"transDocNo": values.get("lr_no") or "",
 		"transDocDate": _format_date(values.get("lr_date")) if values.get("lr_date") else "",
@@ -118,7 +121,7 @@ def build_generate_payload(doc, values):
 		data["vehicleNo"] = vehicle_no.upper()
 		data["transMode"] = TRANSPORT_MODES.get(values.get("mode_of_transport")) or 1
 		data["vehicleType"] = VEHICLE_TYPES.get(values.get("gst_vehicle_type")) or "R"
-	elif not values.get("transporter_id"):
+	elif not (values.get("gst_transporter_id") or values.get("transporter_id")):
 		# Part A only requires a transporter id.
 		frappe.throw(
 			_(

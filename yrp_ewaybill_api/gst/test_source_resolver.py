@@ -35,6 +35,9 @@ HSN_CODE = "61091000"
 class TestSourceResolver(FrappeTestCase):
 	def _configure_enabled_doctype(self):
 		settings = frappe.get_doc("YRP E-Waybill Settings")
+		# Company GSTIN in Settings is authoritative. Pin it so this test does
+		# not depend on whichever credential is configured on the development site.
+		settings.company_gstin = FROM_GSTIN
 		settings.set("enabled_doctypes", [])
 		settings.append(
 			"enabled_doctypes",

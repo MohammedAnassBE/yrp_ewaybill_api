@@ -7,12 +7,6 @@ from frappe.model.document import Document
 
 
 class YRPEWaybillSettings(Document):
-	def on_update(self):
-		# Create transport + e-Waybill + GST fields on the enabled doctypes.
-		# Pass self (not the cached single) so just-saved rows are seen.
-		from yrp_ewaybill_api.ewaybill.field_sync import sync_ewaybill_fields
-		sync_ewaybill_fields(self)
-
 	def get_company_gstin(self):
 		"""The GSTIN e-Way Bills are generated from (the authenticating / from
 		GSTIN). Explicit `company_gstin` wins; otherwise, if exactly one

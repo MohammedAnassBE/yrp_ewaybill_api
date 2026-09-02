@@ -49,3 +49,5 @@ STATE_NUMBERS = {
 }
 
 GST_TAX_TYPES = ("cgst", "sgst", "igst", "cess", "cess_non_advol")
+
+GST_CATEGORIES = ("Registered Regular", "Unregistered", "SEZ", "Overseas")

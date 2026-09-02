@@ -18,8 +18,14 @@ doc_events = {
 	},
 }
 
-# After migrate: (re)create the e-Waybill + GST custom fields on enabled doctypes.
-after_migrate = "yrp_ewaybill_api.ewaybill.field_sync.sync_ewaybill_fields"
+# Customizations of upstream DocTypes are versioned as Custom Field fixtures.
+# The module filter keeps the export scoped to records owned by this app.
+fixtures = [
+	{
+		"dt": "Custom Field",
+		"filters": [["module", "=", "YRP E-Waybill Integration"]],
+	},
+]
 
 # Print-format helpers (QR code, barcode, formatting) for the e-Waybill print.
 jinja = {
@@ -284,4 +290,3 @@ jinja = {
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-

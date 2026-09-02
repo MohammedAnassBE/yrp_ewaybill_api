@@ -123,6 +123,16 @@ yrp_ewaybill.show_generate_dialog = function (frm) {
 			default: doc.gst_transporter_id,
 		},
 		{
+			// The form field is read-only (popup-driven, 2026-07-10) — this
+			// dialog is the only writer. Drives the CGST/SGST vs IGST split
+			// server-side (SEZ / Overseas / Unregistered parties).
+			label: __("GST Category"),
+			fieldname: "gst_category",
+			fieldtype: "Select",
+			options: "Registered Regular\nUnregistered\nSEZ\nOverseas",
+			default: doc.gst_category || "Registered Regular",
+		},
+		{
 			label: __("Part B"),
 			fieldname: "section_part_b",
 			fieldtype: "Section Break",
